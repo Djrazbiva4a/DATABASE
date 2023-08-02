@@ -1,0 +1,25 @@
+USE REPORTING;
+GO
+
+DECLARE 
+    @SchemaName NVARCHAR(100) = 'REPORTING_SCHEMA',
+    @ColumnName NVARCHAR(100) = 'Column2',
+    @NewDataType NVARCHAR(100) = 'int', 
+    @datatypeScript NVARCHAR(MAX);
+
+SET @datatypeScript = '';
+
+SELECT @datatypeScript = @datatypeScript + 
+    'BEGIN TRY ' +
+    '   ALTER TABLE ' + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) +
+    '   ALTER COLUMN ' + QUOTENAME(COLUMN_NAME) + ' ' + @NewDataType + '; ' +
+    'END TRY ' +
+    'BEGIN CATCH ' +
+    '   PRINT ''Error altering column [' + COLUMN_NAME + '] in table [' + TABLE_SCHEMA + '.' + TABLE_NAME + ']: '' + ERROR_MESSAGE(); ' +
+    'END CATCH; ' + CHAR(13)
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = @SchemaName
+  AND COLUMN_NAME LIKE '%' + @ColumnName + '%';
+
+PRINT(@datatypeScript);
+EXEC(@datatypeScript);
